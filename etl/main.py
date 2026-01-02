@@ -6,12 +6,19 @@ from .database import engine, Base, SessionLocal
 from .models import Signal, Data
 
 # Ensure tables exist
-Base.metadata.create_all(bind=engine)
 
 class ETLProcessor:
-    def __init__(self, api_url: str):
+    def __init__(self, api_url: str, db_session = None):
         self.api_url = api_url
-        self.db = SessionLocal()
+        if db_session:
+            self.db = db_session
+            self.own_session = False
+        else:
+            self.db = SessionLocal()
+            self.own_session = True
+            
+        # Ensure tables exist using the current database connection
+        Base.metadata.create_all(bind=self.db.get_bind())
 
     def extract(self, date: datetime.date) -> pd.DataFrame:
         """
@@ -138,7 +145,8 @@ class ETLProcessor:
             transformed_df = self.transform(df)
             self.load(transformed_df)
         finally:
-            self.db.close()
+            if self.own_session:
+                self.db.close()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run ETL for a specific date")

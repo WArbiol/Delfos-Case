@@ -31,7 +31,7 @@ docker compose exec api_conector python scripts/init_db_fonte.py
 ```
 
 #### Via Python
-Execute o script de setup diretamente pelo container da API (sem necessidade de instalar Python/libs na sua máquina):
+Caso prefira rodar localmente:
 
 ```bash
 pip install -r requirements.txt
@@ -46,6 +46,25 @@ O script de ETL extrai dados da API, transforma e carrega no banco alvo.
 # Exemplo para rodar dados de uma data específica
 DB_TARGET_HOST=localhost python3 -m etl.main --date 2025-12-25
 ```
+
+### 4. Orquestração com Dagster
+O Dagster é utilizado para orquestrar o processo de ETL diariamente, oferecendo interface visual, backfill e monitoramento.
+
+1.  **Iniciar o Dagster**:
+    ```bash
+    dagster dev -m orchestrator
+    ```
+
+2.  **Acessar a UI**:
+    Abra o navegador em [http://localhost:3000](http://localhost:3000).
+
+3.  **Executar Job**:
+    - Vá até a aba "Assets".
+    - Clique em `daily_wind_etl`.
+    - Clique em "Materialize" e escolha uma data de partição (lembre-se que o script de init gera dados apenas para os últimos 10 dias).
+
+4.  **Agendamento**:
+    O job está configurado para rodar diariamente à meia-noite (UTC). Ative o schedule na aba "Overview" > "Schedules".
 
 ---
 
@@ -105,4 +124,5 @@ Optou-se por uma modelagem **Vertical (EAV-like/Tabela Fato de Sinais)** em vez 
 - `/api`: Código da aplicação FastAPI.
 - `/etl`: Lógica do pipeline (Extract, Transform, Load).
 - `/scripts`: Scripts auxiliares de setup (infraestrutura).
+- `/orchestrator`: Orquestração com Dagster.
 - `docker-compose.yml`: Orquestração dos serviços.
