@@ -1,0 +1,54 @@
+services:
+  db_source:
+    image: postgres:15-alpine
+    container_name: db_fonte
+    ports:
+      - "${DB_SOURCE_EXTERNAL_PORT}:${DB_SOURCE_PORT}"
+    environment:
+      POSTGRES_USER: ${DB_SOURCE_USER}
+      POSTGRES_PASSWORD: ${DB_SOURCE_PASSWORD}
+      POSTGRES_DB: ${DB_SOURCE_NAME}
+    volumes:
+      - pg_source_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_SOURCE_USER} -d ${DB_SOURCE_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  db_target:
+    image: postgres:15-alpine
+    container_name: db_alvo
+    ports:
+      - "${DB_TARGET_EXTERNAL_PORT}:${DB_TARGET_PORT}"
+    environment:
+      POSTGRES_USER: ${DB_TARGET_USER}
+      POSTGRES_PASSWORD: ${DB_TARGET_PASSWORD}
+      POSTGRES_DB: ${DB_TARGET_NAME}
+    volumes:
+      - pg_target_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_TARGET_USER} -d ${DB_TARGET_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api_conector:
+    build: .
+    container_name: api_conector
+    ports:
+      - "8000:8000"
+    environment:
+      DB_SOURCE_USER: ${DB_SOURCE_USER}
+      DB_SOURCE_PASSWORD: ${DB_SOURCE_PASSWORD}
+      DB_SOURCE_NAME: ${DB_SOURCE_NAME}
+      POSTGRES_HOST: db_source
+      POSTGRES_PORT: 5432
+    depends_on:
+      db_source:
+        condition: service_healthy
+
+
+volumes:
+  pg_source_data:
+  pg_target_data:
