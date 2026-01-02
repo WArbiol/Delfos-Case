@@ -9,7 +9,13 @@ Este projeto configura uma infraestrutura completa de dados, simulando um ambien
 - Python 3.10+
 - Pip
 
-### 1. Subir a Infraestrutura
+### 1. Configuração
+Copie o arquivo de variáveis de ambiente:
+```bash
+cp .env.example .env
+```
+
+### 2. Subir a Infraestrutura
 O projeto utiliza Docker Compose para orquestrar dois bancos PostgreSQL (`db_fonte` e `db_alvo`) e a API de dados (`api_conector`).
 
 ```bash
@@ -21,7 +27,7 @@ Isso iniciará:
 - **db_target**: Porta externa 5434
 - **api_conector**: Porta externa 8000
 
-### 2. Popular o Banco Fonte
+### 3. Popular o Banco Fonte
 
 #### Via Docker
 Execute o script de setup diretamente pelo container da API (sem necessidade de instalar Python/libs na sua máquina):
@@ -38,7 +44,7 @@ pip install -r requirements.txt
 python scripts/init_db_fonte.py
 ```
 
-### 3. Executar o ETL
+### 4. Executar o ETL
 O script de ETL extrai dados da API, transforma e carrega no banco alvo.
 **Observação**: Ao rodar localmente (fora do Docker), é necessário sobrescrever o host do banco alvo para `localhost`.
 
@@ -47,7 +53,7 @@ O script de ETL extrai dados da API, transforma e carrega no banco alvo.
 DB_TARGET_HOST=localhost python3 -m etl.main --date 2025-12-25
 ```
 
-### 4. Orquestração com Dagster
+### 5. Orquestração com Dagster
 O Dagster é utilizado para orquestrar o processo de ETL diariamente, oferecendo interface visual, backfill e monitoramento.
 
 1.  **Iniciar o Dagster**:
